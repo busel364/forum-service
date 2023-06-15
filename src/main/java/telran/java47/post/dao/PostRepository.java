@@ -12,9 +12,9 @@ import telran.java47.post.model.Post;
 public interface PostRepository extends MongoRepository<Post, String> {
 Stream<Post> findByAuthorIgnoreCase(String author);
 	
-	@Query("{'tags':{'$in': ?0}}")
-	Stream<Post> findByTagsIgnoreCase(List<String> tags);
+//	@Query("{'tags':{'$in': ?0}}")
+	Stream<Post> findByTagsInIgnoreCase(List<String> tags);
 	
-	@Query("{'dateCreated':{'$gte':?0, '$lte':?1}}")
-	Stream<Post> findByDateCreated(LocalDate dateFrom, LocalDate dateTo);
+//	@Query("{'dateCreated':{'$gte':?0, '$lte':?1}}")
+	Stream<Post> findByDateCreatedBetween(LocalDate dateFrom, LocalDate dateTo);
 }
