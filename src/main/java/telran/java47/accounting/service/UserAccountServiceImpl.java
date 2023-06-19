@@ -1,5 +1,6 @@
 package telran.java47.accounting.service;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 			throw new UserExistsExeption();
 		}
 		UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
+		String password = BCrypt.hashpw(userRegisterDto.getPassword(), BCrypt.gensalt());
+		userAccount.setPassword(password);
 		userAccount.addRole("User");
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
@@ -47,8 +50,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public UserDto updateUser(String login, UserEditDto userEditDto) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
-		userAccount.setFirstName(userEditDto.getFirstName());
-		userAccount.setLastName(userEditDto.getLastName());
+		if (userEditDto.getFirstName() != null) {
+			userAccount.setFirstName(userEditDto.getFirstName());
+		}
+		if (userEditDto.getLastName() != null) {
+			userAccount.setLastName(userEditDto.getLastName());
+		}
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
@@ -68,7 +75,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public void changePassword(String login, String newPassword) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
-		userAccount.setPassword(newPassword);
+		String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
 	}
 
