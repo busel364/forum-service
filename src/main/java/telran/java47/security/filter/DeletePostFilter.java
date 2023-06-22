@@ -22,9 +22,9 @@ import telran.java47.post.dto.exeptions.PostNotFoundExeption;
 import telran.java47.post.model.Post;
 
 @Component
-@Order(20)
 @RequiredArgsConstructor
-public class ModeratorFilter implements Filter {
+@Order(40)
+public class DeletePostFilter implements Filter {
 
 	final UserAccountRepository userAccountRepository;
 	final PostRepository postRepository;
@@ -35,20 +35,11 @@ public class ModeratorFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			String userName = "";
 			String[] list = request.getServletPath().split("/");
-			try {
-				userName = request.getUserPrincipal().getName();
-			} catch (Exception e) {
-				throw new UserNotFoundExeption();
-			}
-			Post post = postRepository.findById(list[2]).orElseThrow(PostNotFoundExeption::new);
-			UserAccount userAccount = userAccountRepository.findById(userName).orElseThrow(UserNotFoundExeption::new);
-			if (checkOwner(request, userAccount, post)) {
-				chain.doFilter(request, response);
-				return;
-			}
-			if (!checkModeratorAccess(userAccount)) {
+			UserAccount userAccount = userAccountRepository.findById(request.getUserPrincipal().getName()).get();
+			Post post = postRepository.findById(list[list.length - 1]).get();
+			if (!(userAccount.getRoles().contains("Moderator")
+					|| userAccount.getLogin().equalsIgnoreCase(post.getAuthor()))) {
 				response.sendError(403, "Forbiden");
 				return;
 			}
@@ -57,18 +48,8 @@ public class ModeratorFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	private boolean checkOwner(HttpServletRequest request, UserAccount user, Post post) {
-		return (user.getLogin().equals(post.getAuthor()))
-				&& checkEndPoint(request.getMethod(), request.getServletPath());
-	}
-
 	private boolean checkEndPoint(String method, String path) {
-		return ("DELETE".equalsIgnoreCase(method) && path.matches("forum/post/.*"))
-				|| ("PUT".equalsIgnoreCase(method) && path.matches("forum/post/.*"));
-	}
-
-	private boolean checkModeratorAccess( UserAccount userAccount) {
-		return (userAccount.getRoles().contains("Moderator"));
+		return ("DELETE".equalsIgnoreCase(method) && path.matches("forum/post/\\w+"));
 	}
 
 }

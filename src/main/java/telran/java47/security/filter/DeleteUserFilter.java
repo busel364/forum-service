@@ -1,6 +1,7 @@
 package telran.java47.security.filter;
 
 import java.io.IOException;
+import java.security.Principal;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -15,50 +16,37 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.dto.exeptions.UserNotFoundExeption;
 import telran.java47.accounting.model.UserAccount;
-import telran.java47.post.dao.PostRepository;
-import telran.java47.post.dto.exeptions.PostNotFoundExeption;
-import telran.java47.post.model.Post;
 
 @Component
-@Order(30)
+@Order(25)
 @RequiredArgsConstructor
-public class AuthorFilter implements Filter {
+public class DeleteUserFilter implements Filter {
 
 	final UserAccountRepository userAccountRepository;
-	final PostRepository postRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
-		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			String userName = "";
-			String[] list = request.getServletPath().split("/");
-			try {
-				userName = request.getUserPrincipal().getName();
-			} catch (Exception e) {
-				throw new UserNotFoundExeption();
-			}
-			if (request.getMethod().equalsIgnoreCase("POST") && !list[3].equals(userName)) {
-				response.sendError(403, "Forbiden");
+		String path = request.getServletPath();
+		if (checkEndPoint(request.getMethod(), path)) {
+			Principal principal = request.getUserPrincipal();
+			String[] arr = path.split("/");
+			String user = arr[arr.length - 1];
+			UserAccount userAccount = userAccountRepository.findById(principal.getName()).get();
+			if (!(principal.getName().equalsIgnoreCase(user) || userAccount.getRoles().contains("Administrator".toUpperCase()))) {
+				response.sendError(403);
 				return;
 			}
-			if (request.getMethod().equalsIgnoreCase("PUT") && !list[5].equals(userName)) {
-				response.sendError(403, "Forbiden");
-				return;
-			}
-
+			
 		}
-
 		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return ("POST".equalsIgnoreCase(method) && path.matches("/forum/post/\\w+"))
-				|| ("PUT".equalsIgnoreCase(method) && path.matches("/forum/post/\\w+/comment/\\w+"));
+		return "DELETE".equalsIgnoreCase(method) && path.matches("/account/user/\\w+/?");
 	}
 
 }

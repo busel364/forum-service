@@ -19,7 +19,6 @@ import telran.java47.accounting.dto.exeptions.UserNotFoundExeption;
 import telran.java47.accounting.model.UserAccount;
 
 @Component
-@Order(30)
 @RequiredArgsConstructor
 public class AdminFilter implements Filter {
 
