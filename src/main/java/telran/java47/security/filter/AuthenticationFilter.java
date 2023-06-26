@@ -17,13 +17,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import telran.java47.accounting.dao.UserAccountRepository;
 import telran.java47.accounting.model.UserAccount;
 import telran.java47.security.context.SecurityContext;
-import telran.java47.security.enums.MethodsEnum;
 import telran.java47.security.enums.RolesEnum;
 import telran.java47.security.model.User;
 
@@ -67,7 +67,7 @@ public class AuthenticationFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return !((MethodsEnum.POST.getTitle().equalsIgnoreCase(method) && path.matches("/account/register/?"))
+		return !((HttpMethod.POST.matches(method) && path.matches("/account/register/?"))
 				|| path.matches("/forum/posts/\\w+(/\\w+)?/?"));
 	}
 

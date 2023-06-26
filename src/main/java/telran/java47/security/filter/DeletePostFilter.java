@@ -36,7 +36,7 @@ public class DeletePostFilter implements Filter {
 			String[] list = request.getServletPath().split("/");
 			Post post = postRepository.findById(list[list.length - 1]).orElse(null);
 			User user = (User) request.getUserPrincipal();
-			if (post == null || !(user.getRoles().contains(RolesEnum.MODERATOR.getTitle())
+			if (post == null || !(user.getRoles().contains(RolesEnum.MODERATOR)
 					|| user.getName().equalsIgnoreCase(post.getAuthor()))) {
 				response.sendError(403);
 				return;

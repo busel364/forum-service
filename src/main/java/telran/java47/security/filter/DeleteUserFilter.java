@@ -31,7 +31,7 @@ public class DeleteUserFilter implements Filter {
 			User user = (User) request.getUserPrincipal();
 			String[] arr = path.split("/");
 			String userName = arr[arr.length - 1];
-			if (!(user.getName().equalsIgnoreCase(userName) || user.getRoles().contains(RolesEnum.ADMINISTATOR.getTitle()))) {
+			if (!(user.getName().equalsIgnoreCase(userName) || user.getRoles().contains(RolesEnum.ADMINISTATOR))) {
 				response.sendError(403);
 				return;
 			}
