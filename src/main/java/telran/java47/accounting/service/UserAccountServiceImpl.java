@@ -65,9 +65,9 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
 		if (isAddRole) {
-			userAccount.addRole(role);
+			userAccount.addRole(role.toUpperCase());
 		} else {
-			userAccount.removeRole(role);
+			userAccount.removeRole(role.toUpperCase());
 		}
 		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, RolesDto.class);

@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.model.UserAccount;
 import telran.java47.post.dao.PostRepository;
 import telran.java47.post.model.Post;
+import telran.java47.security.enums.MethodsEnum;
 
 @Component
 @Order(35)
@@ -34,9 +34,8 @@ public class UpdatePostByOwnerFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			String[] list = request.getServletPath().split("/");
-			UserAccount userAccount = userAccountRepository.findById(request.getUserPrincipal().getName()).get();
-			Post post = postRepository.findById(list[list.length - 1]).get();
-			if (!post.getAuthor().equalsIgnoreCase(userAccount.getLogin())) {
+			Post post = postRepository.findById(list[list.length - 1]).orElse(null);
+			if (post == null || !post.getAuthor().equalsIgnoreCase(request.getUserPrincipal().getName())) {
 				response.sendError(403);
 				return;
 			}
@@ -46,7 +45,7 @@ public class UpdatePostByOwnerFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return ("PUT".equalsIgnoreCase(method) && path.matches("forum/post/\\w+"));
+		return (MethodsEnum.PUT.getTitle().equalsIgnoreCase(method) && path.matches("forum/post/\\w+"));
 	}
 
 }

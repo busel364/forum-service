@@ -14,19 +14,17 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.dto.exeptions.UserNotFoundExeption;
-import telran.java47.accounting.model.UserAccount;
 import telran.java47.post.dao.PostRepository;
-import telran.java47.post.dto.exeptions.PostNotFoundExeption;
 import telran.java47.post.model.Post;
+import telran.java47.security.enums.MethodsEnum;
+import telran.java47.security.enums.RolesEnum;
+import telran.java47.security.model.User;
 
 @Component
 @RequiredArgsConstructor
 @Order(40)
 public class DeletePostFilter implements Filter {
 
-	final UserAccountRepository userAccountRepository;
 	final PostRepository postRepository;
 
 	@Override
@@ -36,11 +34,11 @@ public class DeletePostFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			String[] list = request.getServletPath().split("/");
-			UserAccount userAccount = userAccountRepository.findById(request.getUserPrincipal().getName()).get();
-			Post post = postRepository.findById(list[list.length - 1]).get();
-			if (!(userAccount.getRoles().contains("Moderator")
-					|| userAccount.getLogin().equalsIgnoreCase(post.getAuthor()))) {
-				response.sendError(403, "Forbiden");
+			Post post = postRepository.findById(list[list.length - 1]).orElse(null);
+			User user = (User) request.getUserPrincipal();
+			if (post == null || !(user.getRoles().contains(RolesEnum.MODERATOR.getTitle())
+					|| user.getName().equalsIgnoreCase(post.getAuthor()))) {
+				response.sendError(403);
 				return;
 			}
 		}
@@ -49,7 +47,7 @@ public class DeletePostFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return ("DELETE".equalsIgnoreCase(method) && path.matches("forum/post/\\w+"));
+		return (MethodsEnum.DELETE.getTitle().equalsIgnoreCase(method) && path.matches("forum/post/\\w+"));
 	}
 
 }

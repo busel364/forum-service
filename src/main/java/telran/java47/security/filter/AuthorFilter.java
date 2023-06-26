@@ -16,10 +16,8 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import telran.java47.accounting.dao.UserAccountRepository;
 import telran.java47.accounting.dto.exeptions.UserNotFoundExeption;
-import telran.java47.accounting.model.UserAccount;
 import telran.java47.post.dao.PostRepository;
-import telran.java47.post.dto.exeptions.PostNotFoundExeption;
-import telran.java47.post.model.Post;
+import telran.java47.security.enums.MethodsEnum;
 
 @Component
 @Order(30)
@@ -42,11 +40,11 @@ public class AuthorFilter implements Filter {
 			} catch (Exception e) {
 				throw new UserNotFoundExeption();
 			}
-			if (request.getMethod().equalsIgnoreCase("POST") && !list[3].equals(userName)) {
+			if (request.getMethod().equalsIgnoreCase(MethodsEnum.POST.getTitle()) && !list[3].equals(userName)) {
 				response.sendError(403, "Forbiden");
 				return;
 			}
-			if (request.getMethod().equalsIgnoreCase("PUT") && !list[5].equals(userName)) {
+			if (request.getMethod().equalsIgnoreCase(MethodsEnum.PUT.getTitle()) && !list[5].equals(userName)) {
 				response.sendError(403, "Forbiden");
 				return;
 			}
@@ -57,8 +55,8 @@ public class AuthorFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return ("POST".equalsIgnoreCase(method) && path.matches("/forum/post/\\w+"))
-				|| ("PUT".equalsIgnoreCase(method) && path.matches("/forum/post/\\w+/comment/\\w+"));
+		return (MethodsEnum.POST.getTitle().equalsIgnoreCase(method) && path.matches("/forum/post/\\w+"))
+				|| (MethodsEnum.PUT.getTitle().equalsIgnoreCase(method) && path.matches("/forum/post/\\w+/comment/\\w+"));
 	}
 
 }

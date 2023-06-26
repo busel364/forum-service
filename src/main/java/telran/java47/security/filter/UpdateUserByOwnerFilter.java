@@ -1,7 +1,6 @@
 package telran.java47.security.filter;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -14,10 +13,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
+import telran.java47.accounting.dao.UserAccountRepository;
+import telran.java47.accounting.model.UserAccount;
+import telran.java47.security.enums.MethodsEnum;
 
 @Component
 @Order(15)
+@RequiredArgsConstructor
 public class UpdateUserByOwnerFilter implements Filter {
+
+	final UserAccountRepository userAccountRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -26,10 +32,9 @@ public class UpdateUserByOwnerFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 		String path = request.getServletPath();
 		if (checkEndPoint(request.getMethod(), path)) {
-			Principal principal = request.getUserPrincipal();
-			String[] arr = path.split("/");
-			String user = arr[arr.length - 1];
-			if (!principal.getName().equalsIgnoreCase(user)) {
+			String[] list = request.getServletPath().split("/");
+			UserAccount userAccount = userAccountRepository.findById(list[list.length - 1]).get();
+			if (!request.getUserPrincipal().getName().equalsIgnoreCase(userAccount.getLogin())) {
 				response.sendError(403);
 				return;
 			}
@@ -38,6 +43,6 @@ public class UpdateUserByOwnerFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return "PUT".equalsIgnoreCase(method) && path.matches("/account/user/\\w+/?");
+		return (MethodsEnum.PUT.getTitle().equalsIgnoreCase(method) && path.matches("/account/user/\\w+/?"));
 	}
 }

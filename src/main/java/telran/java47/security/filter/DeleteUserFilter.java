@@ -1,7 +1,6 @@
 package telran.java47.security.filter;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -14,16 +13,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.model.UserAccount;
+import telran.java47.security.enums.MethodsEnum;
+import telran.java47.security.enums.RolesEnum;
+import telran.java47.security.model.User;
 
 @Component
 @Order(25)
-@RequiredArgsConstructor
 public class DeleteUserFilter implements Filter {
-
-	final UserAccountRepository userAccountRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -32,21 +28,19 @@ public class DeleteUserFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 		String path = request.getServletPath();
 		if (checkEndPoint(request.getMethod(), path)) {
-			Principal principal = request.getUserPrincipal();
+			User user = (User) request.getUserPrincipal();
 			String[] arr = path.split("/");
-			String user = arr[arr.length - 1];
-			UserAccount userAccount = userAccountRepository.findById(principal.getName()).get();
-			if (!(principal.getName().equalsIgnoreCase(user) || userAccount.getRoles().contains("Administrator".toUpperCase()))) {
+			String userName = arr[arr.length - 1];
+			if (!(user.getName().equalsIgnoreCase(userName) || user.getRoles().contains(RolesEnum.ADMINISTATOR.getTitle()))) {
 				response.sendError(403);
 				return;
 			}
-			
 		}
 		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return "DELETE".equalsIgnoreCase(method) && path.matches("/account/user/\\w+/?");
+		return MethodsEnum.DELETE.getTitle().equalsIgnoreCase(method) && path.matches("/account/user/\\w+/?");
 	}
 
 }

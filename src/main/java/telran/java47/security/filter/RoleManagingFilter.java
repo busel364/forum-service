@@ -13,15 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.model.UserAccount;
+import telran.java47.security.enums.RolesEnum;
+import telran.java47.security.model.User;
 
 @Component
 @Order(20)
-@RequiredArgsConstructor
 public class RoleManagingFilter implements Filter {
-	final UserAccountRepository userAccountRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -29,8 +26,8 @@ public class RoleManagingFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			UserAccount userAccount = userAccountRepository.findById(request.getUserPrincipal().getName()).get();
-			if (!userAccount.getRoles().contains("Administrator".toUpperCase())) {
+			User user = (User) request.getUserPrincipal();
+			if (!user.getRoles().contains(RolesEnum.ADMINISTATOR.getTitle())) {
 				response.sendError(403);
 				return;
 			}
